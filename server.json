@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.renhongtao2-cell/ai-tools-directory",
+  "name": "top.toolboxes/ai-tools-directory",
   "title": "AI Tools Directory",
   "description": "Curated index of 221 AI tools across 21 industries. Search by use case, department or pricing tier.",
   "repository": {
