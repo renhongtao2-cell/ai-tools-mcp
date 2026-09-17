@@ -1,13 +1,15 @@
 # 上架指南 — AI Tools Directory MCP server
 
-当前状态：
+当前状态（2026-09-17）：
 
 | 项 | 状态 |
 |---|---|
-| 端点 | `https://ai-tools-mcp.toolboxes.top/mcp`（已上线，36/36 自测通过） |
-| `server.json` | ✅ 已通过官方 `mcp-publisher validate` |
+| 端点 | ✅ `https://ai-tools-mcp.toolboxes.top/mcp`（已上线，36/36 自测通过） |
+| `server.json` | ✅ 已通过官方 `mcp-publisher validate`，命名空间 `top.toolboxes/ai-tools-directory` |
 | `mcp-publisher` | ✅ 已装到 `C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe` |
-| 公开仓库 | ⬜ 待你确认后创建（`E:\xiangmu\ai-tools-mcp` 已备好） |
+| 官方 Registry | ✅ **已发布**（DNS 域名认证，非 GitHub 设备码）— 自动级联 Smithery + PulseMCP |
+| DNS TXT | ✅ 已在 `toolboxes.top` apex 加 `v=MCPv1; k=ed25519; p=...`（用 `cf.env` 里的 `CF_TOK` 经 Cloudflare API 操作） |
+| 公开仓库 | ⬜ 可选：仅用于 Glama 自动爬取 / mcp.so / Awesome PR，需有效 GitHub PAT（本机 `.git-credentials` 的 token 已过期 401） |
 
 ---
 
@@ -17,33 +19,35 @@ Smithery 和 PulseMCP **都会自动从官方 Registry 抓取**。发一次，�
 
 ---
 
-## 第 1 步：官方 MCP Registry
+## 第 1 步：官方 MCP Registry ✅ 已完成（2026-09-17）
 
-需要你做**一次交互登录**（GitHub 设备码授权，我代替不了）。
+实际走的是 **DNS 域名认证**（比 GitHub 设备码省事，全自动，不用浏览器）：
 
+1. 在 `toolboxes.top` 的 **apex（Name=`@`）** 加一条 TXT 记录（Cloudflare → DNS → 添加记录，类型 TXT）：
+   ```
+   v=MCPv1; k=ed25519; p=lBdxoy2ygBjN2ubtZtCG3JMjOw/3Jvs8AH+TvpkGSNw=
+   ```
+   > ⚠️ 放 apex，不是 `_mcp` 子域。已有 GSC 验证 TXT 不用动，新加这条是追加。
+2. 用本地 Ed25519 私钥（存 `C:\Users\Administrator\.workbuddy-ai\mcp-domain-key.json` 的 `priv` 字段，64 hex = 32 字节种子）登录：
+   ```bash
+   C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe login dns --domain toolboxes.top --private-key <64hex私钥>
+   ```
+3. 发布：
+   ```bash
+   C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe publish
+   ```
+
+验证（已通过）：
 ```bash
-cd E:\xiangmu\ai-tools-mcp
-C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe login github
-```
-
-会打印一个链接和一个形如 `ABCD-1234` 的码：打开 `https://github.com/login/device`，填码，授权。授权后回到终端看到 `Successfully logged in`。
-
-然后：
-
-```bash
-C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe publish
-```
-
-验证：
-
-```bash
-curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.renhongtao2-cell/ai-tools-directory"
+curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=ai-tools-directory"
+# => 返回 top.toolboxes/ai-tools-directory，official/active，remotes 指向 ai-tools-mcp.toolboxes.top/mcp
 ```
 
 ### 命名说明
-`server.json` 里用的是 `io.github.renhongtao2-cell/ai-tools-directory`。官方规则：**GitHub 认证只能发布 `io.github.<你的用户名>/` 开头的名字**，所以这里必须是 `renhongtao2-cell`（你的 GitHub 用户名）。
+`server.json` 用的是 `top.toolboxes/ai-tools-directory`（域名反向 DNS，DNS 认证要求的命名空间）。官方规则：**域名认证发布 `com.<反向域名>/*`**，这里是 `top.toolboxes`。反过来用 GitHub 认证的 `io.github.*` 前缀反而会被拒。
 
-如果将来想用 `com.toolboxes/...` 这种自定义域名前缀，需要改用 DNS 认证（加 TXT 记录 + Ed25519 密钥）。现在没必要。
+### 重新发布（数据更新后）
+改 `server.json` 的 `version`（递增）→ `mcp-publisher publish`。Registry 只存元数据、指向固定 URL，改服务端代码不用重发。
 
 ---
 
@@ -145,12 +149,13 @@ C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe publish
 
 ## 检查清单
 
-- [ ] 创建公开 GitHub 仓库（把 `E:\xiangmu\ai-tools-mcp` 推上去）
-- [ ] `mcp-publisher login github`（你做，需要浏览器授权）
-- [ ] `mcp-publisher publish`
-- [ ] 用 Registry API 验证能搜到
-- [ ] Smithery 表单
-- [ ] Glama Add Server
-- [ ] MCP.so 表单
-- [ ] Awesome MCP Servers PR（先确认主仓库还在不在）
+- [x] 官方 Registry 发布（`top.toolboxes/ai-tools-directory`，DNS 认证）✅ 2026-09-17
+- [x] 用 Registry API 验证能搜到 ✅
+- [x] DNS TXT 已加（apex，CF API 操作）
+- [ ] 公开 GitHub 仓库（可选，次要）：用于 Glama 自动爬取 / mcp.so / Awesome PR，需有效 GitHub PAT
+- [ ] Smithery —— 应已自动从官方 Registry 抓取；没抓到再填表单 <https://smithery.ai/new>
+- [ ] Glama Add Server（有公开仓库后更顺）<https://glama.ai/mcp/servers>
+- [ ] MCP.so 表单 <https://mcp.so>
+- [ ] Awesome MCP Servers PR（先确认主仓库还在不在：`appcypher/awesome-mcp-servers` 等）
 - [ ] 顺手也加到自家的 `mcp.toolboxes.top` 目录（现成的，别浪费）
+- [ ] 官方 Registry 是 canonical，已自动级联 PulseMCP + MCP Market，不用手动提交
