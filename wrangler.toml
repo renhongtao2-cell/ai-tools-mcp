@@ -1,0 +1,15 @@
+name = "ai-tools-mcp"
+main = "worker.js"
+compatibility_date = "2026-09-05"
+# account_id 请用环境变量 CLOUDFLARE_ACCOUNT_ID 提供（不要提交到公开仓库）
+
+# workers.dev 在国内被 GFW 封；mcp.toolboxes.top 已被既有「MCP Servers Directory」占用
+# 所以主入口用 ai-tools-mcp.toolboxes.top（custom_domain 自动建 DNS + 证书）
+workers_dev = true
+
+routes = [
+  { pattern = "ai-tools-mcp.toolboxes.top", custom_domain = true }
+]
+
+[observability]
+enabled = true

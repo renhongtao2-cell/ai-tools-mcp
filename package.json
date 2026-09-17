@@ -1,0 +1,23 @@
+{
+  "name": "ai-tools-directory-mcp",
+  "version": "1.0.0",
+  "description": "MCP server exposing a curated directory of 221 AI tools across 21 industry departments",
+  "type": "module",
+  "main": "worker.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renhongtao2-cell/ai-tools-mcp.git"
+  },
+  "homepage": "https://ai.toolboxes.top",
+  "keywords": ["mcp", "model-context-protocol", "ai-tools", "directory", "cloudflare-worker"],
+  "scripts": {
+    "build": "node build-dataset.mjs",
+    "test": "node test.mjs",
+    "dev": "wrangler dev --port 8791",
+    "deploy": "wrangler deploy"
+  },
+  "engines": { "node": ">=20" },
+  "files": ["worker.js", "dataset.json", "server.json", "build-dataset.mjs", "test.mjs", "wrangler.toml", "README.md"],
+  "private": false
+}
