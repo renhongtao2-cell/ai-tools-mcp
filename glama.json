@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "v1",
+  "name": "ai-tools-directory",
+  "version": "1.0.0",
+  "description": "Curated index of 221 AI tools across 21 industry departments. Search by use case, department or pricing tier. Remote MCP server over Streamable HTTP, zero dependencies.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/renhongtao2-cell/ai-tools-mcp"
+  },
+  "homepage": "https://ai.toolboxes.top",
+  "author": {
+    "name": "renhongtao"
+  },
+  "license": "MIT",
+  "packages": [],
+  "server": {
+    "type": "http",
+    "url": "https://ai-tools-mcp.toolboxes.top/mcp"
+  }
+}
