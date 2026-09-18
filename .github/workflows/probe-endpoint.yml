@@ -1,0 +1,71 @@
+# 从 GitHub Actions 的网络出口探测我们自己的 MCP 端点。
+#
+# 为什么必须要这个 workflow：
+#   awesome-remote-mcp-servers 的 CI（`<!-- auth-check -->`）从 GitHub Actions 出网，
+#   曾拿到 401/403（判定 🔑），而本机 curl 一直是 200（判定 🔓）。
+#   本机**无法复现**「GitHub 出口 IP 被 Cloudflare 边缘拦截」这件事：
+#     - allorigins 只支持 GET，POST 一律 522，不可信
+#     - 本机没有外部代理
+#   → 唯一可靠的办法就是**在同一个网络里自己探自己**：GitHub Actions 探 GitHub Actions。
+#
+# 🔴 另一个必须知道的点：对方 CI 的 `say(marker, body)` **只在 marker 首次出现时评论**，
+#    既不删旧评论也不重复发，labels 也不变。所以即使我们已经修好，
+#    那条 "auth marker does not match" 也**永远不会自动更新**。
+#    → 本 workflow 是我们唯一能持续观测真实状态的手段。
+#
+# 触发：push 改本文件 / 手动 dispatch / 每天 03:23 UTC
+name: probe-endpoint
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/probe-endpoint.yml'
+  schedule:
+    - cron: '23 3 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Egress IP
+        run: |
+          echo "runner egress IP: $(curl -s -m 15 https://api.ipify.org || echo '(lookup failed)')"
+
+      - name: MCP initialize (plain curl, no UA override)
+        id: probe
+        run: |
+          set -u
+          URL="https://ai-tools-mcp.toolboxes.top/mcp"
+          code=$(curl -sS -m 30 -o body.txt -w '%{http_code}' -X POST "$URL" \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"gh-actions-probe","version":"1"}}}' \
+            || echo "curl-failed")
+          echo "HTTP_STATUS=$code"
+          echo "HTTP_STATUS=$code" >> "$GITHUB_OUTPUT"
+          echo "--- response body (first 800 chars) ---"
+          head -c 800 body.txt 2>/dev/null || true
+          echo
+
+      - name: Verdict
+        run: |
+          code="${{ steps.probe.outputs.HTTP_STATUS }}"
+          echo "HTTP_STATUS=$code"
+          if [ "$code" = "200" ]; then
+            echo "PASS: GitHub Actions 出口可正常访问 → 端点对外确实无鉴权（🔓，与条目一致）"
+          else
+            echo "FAIL: 非 200 → 边缘仍在拦截 GitHub Actions 出口，需继续排查 Cloudflare 设置"
+          fi
+
+      - name: tools/list sanity
+        run: |
+          echo "--- tools/list ---"
+          curl -sS -m 30 -X POST "https://ai-tools-mcp.toolboxes.top/mcp" \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' 2>&1 | head -c 300 || true
+          echo
