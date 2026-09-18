@@ -1,6 +1,6 @@
 # 上架指南 — AI Tools Directory MCP server
 
-当前状态（2026-09-17）：
+当前状态（2026-09-18 更新）：
 
 | 项 | 状态 |
 |---|---|
@@ -9,7 +9,10 @@
 | `mcp-publisher` | ✅ 官方 CLI 已安装并完成登录（本地工具，不入库） |
 | 官方 Registry | ✅ **已发布**（DNS 域名认证，非 GitHub 设备码）— 自动级联 Smithery + PulseMCP |
 | DNS TXT | ✅ 已在 `toolboxes.top` apex 加 `v=MCPv1; k=ed25519; p=<公钥>` |
-| 公开仓库 | 🔴 **必须补**（不再是"可选"）：Registry 条目已**公开声明** `github.com/renhongtao2-cell/ai-tools-mcp`，但该仓库 **404** —— 这是一条公开的失效引用。本机 `.git-credentials` 的 token **实测 401 已过期**（2026-09-18）。仓库本地已就绪：4 个 commit、工作区干净、README / LICENSE / server.json / glama.json / .gitignore 齐全 |
+| **公开仓库** | ✅ **已完成** —— https://github.com/renhongtao2-cell/ai-tools-mcp （PUBLIC，分支 `main`，topics 已设）。修掉了失效引用 |
+| **Awesome PR** | ✅ **已提交** —— https://github.com/punkpeye/awesome-remote-mcp-servers/pull/407 ，CI 全绿（标签 `endpoint-ok` + `has-connector`，`check-submission` success，`mergeable: clean`），等合并 |
+| **Glama connector** | ✅ 已收录 —— `glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory` |
+
 
 ---
 
@@ -81,7 +84,11 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=ai-tools-dire
 
 ---
 
-## 第 5 步：Awesome 列表 PR —— ⚠️ 去错了仓库（2026-09-18 核实并更正）
+## 第 5 步：Awesome 列表 PR —— ✅ 已完成（PR #407）
+
+> **结果（2026-09-18）**：PR **https://github.com/punkpeye/awesome-remote-mcp-servers/pull/407**
+> 已提交，CI 全绿（`endpoint-ok` + `has-connector`，`check-submission` success，`mergeable: clean`）。
+> 下面的核实过程保留作记录。
 
 **关键更正**：`awesome-mcp-servers`（95k star）的 CONTRIBUTING 明确写了：
 
@@ -207,10 +214,14 @@ mcp-publisher publish
 - [ ] Smithery —— 应已自动从官方 Registry 抓取；没抓到再填表单 <https://smithery.ai/new>
 - [ ] Glama Add Server（有公开仓库后更顺）<https://glama.ai/mcp/servers>
 - [ ] MCP.so 表单 <https://mcp.so>
-- [ ] **star `punkpeye/awesome-remote-mcp-servers`**（🔴 前置条件：CONTRIBUTING 要求 PR 作者必须 star 过）
-- [ ] Awesome PR → **`punkpeye/awesome-remote-mcp-servers`**（纯远程列表，262 star，我们的正确目标）
-      —— 条目文案见第 5 步，PR 标题结尾加 `🤖🤖🤖`
-- [ ] Glama connector 已收录 ✅（`glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory`，实测 200）
+- [x] **star `punkpeye/awesome-remote-mcp-servers`** ✅（2026-09-18 已 star，API 核实 204）
+- [x] **Awesome PR 已提交** ✅ → https://github.com/punkpeye/awesome-remote-mcp-servers/pull/407
+      - 分支 `add-ai-tools-directory`，commit `faab3f2`，1 文件 +3/-0
+      - CI 标签：`endpoint-ok`、`has-connector`；检查 `check-submission` = success；`mergeable: clean`
+      - 标题带 `🤖🤖🤖`（agent 加速通道）
+      - ⏳ **等维护者合并**
+- [x] Glama connector 已收录 ✅（`glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory`，实测 200）
+- [x] 公开仓库已建 ✅ https://github.com/renhongtao2-cell/ai-tools-mcp
 - [ ] ⚠️ `punkpeye/awesome-mcp-servers`（95k star）**我们是 remote-only，超出其范围**，别浪费时间
 - [ ] 顺手也加到自家的 `mcp.toolboxes.top` 目录（现成的，别浪费）
 - [ ] 官方 Registry 是 canonical，已自动级联 PulseMCP + MCP Market，不用手动提交
