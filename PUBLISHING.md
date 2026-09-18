@@ -9,7 +9,7 @@
 | `mcp-publisher` | ✅ 已装到 `C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe` |
 | 官方 Registry | ✅ **已发布**（DNS 域名认证，非 GitHub 设备码）— 自动级联 Smithery + PulseMCP |
 | DNS TXT | ✅ 已在 `toolboxes.top` apex 加 `v=MCPv1; k=ed25519; p=...`（用 `cf.env` 里的 `CF_TOK` 经 Cloudflare API 操作） |
-| 公开仓库 | ⬜ 可选：仅用于 Glama 自动爬取 / mcp.so / Awesome PR，需有效 GitHub PAT（本机 `.git-credentials` 的 token 已过期 401） |
+| 公开仓库 | 🔴 **必须补**（不再是"可选"）：Registry 条目已**公开声明** `github.com/renhongtao2-cell/ai-tools-mcp`，但该仓库 **404** —— 这是一条公开的失效引用。本机 `.git-credentials` 的 token **实测 401 已过期**（2026-09-18）。仓库本地已就绪：4 个 commit、工作区干净、README / LICENSE / server.json / glama.json / .gitignore 齐全 |
 
 ---
 
@@ -83,9 +83,16 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=ai-tools-dire
 
 ## 第 5 步：Awesome MCP Servers（GitHub PR）
 
-- 主仓库 <https://github.com/punkpeye/awesome-mcp-servers> **曾返回 404**，可能已迁移
-- 备选：`appcypher/awesome-mcp-servers`、`wong2/awesome-mcp-servers`、`sammcj/awesome-mcp-servers`
-- 需要公开仓库（列表本身就是链到公开 repo 的）
+**2026-09-18 实测核对**（此前的"punkpeye 已 404"是错的）：
+
+| 仓库 | 状态 | 星数 | 结论 |
+|---|---|---|---|
+| `punkpeye/awesome-mcp-servers` | ✅ 活跃 | **95,185** | **主目标**，去这个 |
+| `wong2/awesome-mcp-servers` | ✅ 活跃 | 4,315 | 备选，也发 |
+| `appcypher/awesome-mcp-servers` | ⚠️ **已 archived** | 5,771 | **别 PR**，归档仓库不会被合 |
+| `sammcj/awesome-mcp-servers` | ❌ 404 | — | 已不存在 |
+
+- 需要公开仓库（列表本身链到公开 repo，**不接受网站链接**）
 - PR 要求：加到对应分类、保持字母序、写简短描述
 
 ---
@@ -152,10 +159,10 @@ C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe publish
 - [x] 官方 Registry 发布（`top.toolboxes/ai-tools-directory`，DNS 认证）✅ 2026-09-17
 - [x] 用 Registry API 验证能搜到 ✅
 - [x] DNS TXT 已加（apex，CF API 操作）
-- [ ] 公开 GitHub 仓库（可选，次要）：用于 Glama 自动爬取 / mcp.so / Awesome PR，需有效 GitHub PAT
+- [ ] 公开 GitHub 仓库（🔴 **必做**，其余目录站全部依赖它）：需有效 GitHub PAT，或直接在浏览器建空仓库再 `git push`
 - [ ] Smithery —— 应已自动从官方 Registry 抓取；没抓到再填表单 <https://smithery.ai/new>
 - [ ] Glama Add Server（有公开仓库后更顺）<https://glama.ai/mcp/servers>
 - [ ] MCP.so 表单 <https://mcp.so>
-- [ ] Awesome MCP Servers PR（先确认主仓库还在不在：`appcypher/awesome-mcp-servers` 等）
+- [ ] Awesome MCP Servers PR → **`punkpeye/awesome-mcp-servers`（95k star，活跃）** + `wong2/awesome-mcp-servers`
 - [ ] 顺手也加到自家的 `mcp.toolboxes.top` 目录（现成的，别浪费）
 - [ ] 官方 Registry 是 canonical，已自动级联 PulseMCP + MCP Market，不用手动提交
