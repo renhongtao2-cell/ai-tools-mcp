@@ -124,6 +124,23 @@ jobs:
                -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"1"}}}' \
                'https://ai-tools-mcp.toolboxes.top/mcp')  /mcp  (Chrome UA)"
 
+      - name: 5) 🧪 workers.dev 备用域名（本机因 GFW 测不了，只能在这里测）
+        run: |
+          # ai-tools-mcp.renhongtao2.workers.dev —— wrangler.toml 里 workers_dev=true，
+          # 所以这个域名是活的。本机（中国网络）HTTP 000，测不了；
+          # 若此处 200 → 可以把它作为对目录站 CI 可用的备用端点。
+          echo "--- workers.dev GET / ---"
+          echo "  $(curl -sS -m 25 -o /dev/null -w '%{http_code}' 'https://ai-tools-mcp.renhongtao2.workers.dev/' || echo err)  /"
+          echo "--- workers.dev POST /mcp initialize ---"
+          code=$(curl -sS -m 30 -o wd.txt -w '%{http_code}' -X POST "https://ai-tools-mcp.renhongtao2.workers.dev/mcp" \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"1"}}}' || echo err)
+          echo "  $code  /mcp"
+          echo "  --- body (first 300) ---"
+          head -c 300 wd.txt 2>/dev/null || true
+          echo
+
       - name: Verdict
         run: |
           code="${{ steps.probe.outputs.MCP_CODE }}"
@@ -131,5 +148,5 @@ jobs:
           if [ "$code" = "200" ]; then
             echo "PASS: 端点从 GitHub Actions 出口可访问（🔓 正确）"
           else
-            echo "FAIL: 非 200 —— 边缘仍在拦截机房 IP"
+            echo "FAIL: 非 200 —— 边缘仍在拦截机房 IP（自定义域名路径在 Free 套餐无解，看上面 workers.dev 结果）"
           fi
