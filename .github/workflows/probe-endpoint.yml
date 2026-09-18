@@ -13,6 +13,14 @@
 #    那条 "auth marker does not match" 也**永远不会自动更新**。
 #    → 本 workflow 是我们唯一能持续观测真实状态的手段。
 #
+# 🔴 实测结论（2026-09-18）：GitHub Actions 出口拿到的是 **403 + "Just a moment..."**，
+#    即 Cloudflare **Managed Challenge**，不是 401、不是我们 Worker 的响应。
+#    已排除：browser_check（已 off，无效）、security_level（essentially_off，无效）、
+#    waf（off）、bot_fight_mode（Free 计划不存在该设置）。
+#    → 剩下的嫌疑：advanced_ddos / 自动 bot 管理，或一条我们无权读取的自定义规则。
+#    → 本 workflow 现在做**差分探测**：同 zone 的多个主机一起探，
+#      判断是「zone 级」还是「单主机级」。
+#
 # 触发：push 改本文件 / 手动 dispatch / 每天 03:23 UTC
 name: probe-endpoint
 
@@ -35,37 +43,44 @@ jobs:
         run: |
           echo "runner egress IP: $(curl -s -m 15 https://api.ipify.org || echo '(lookup failed)')"
 
-      - name: MCP initialize (plain curl, no UA override)
+      - name: Differential probe (MCP endpoint vs sibling hosts on same zone)
         id: probe
         run: |
           set -u
-          URL="https://ai-tools-mcp.toolboxes.top/mcp"
-          code=$(curl -sS -m 30 -o body.txt -w '%{http_code}' -X POST "$URL" \
+          echo "=========== POST /mcp  (the one that matters) ==========="
+          code=$(curl -sS -m 30 -o body.txt -w '%{http_code}' -X POST "https://ai-tools-mcp.toolboxes.top/mcp" \
             -H 'content-type: application/json' \
             -H 'accept: application/json, text/event-stream' \
             -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"gh-actions-probe","version":"1"}}}' \
             || echo "curl-failed")
-          echo "HTTP_STATUS=$code"
-          echo "HTTP_STATUS=$code" >> "$GITHUB_OUTPUT"
-          echo "--- response body (first 800 chars) ---"
-          head -c 800 body.txt 2>/dev/null || true
+          echo "MCP_CODE=$code"
+          echo "MCP_CODE=$code" >> "$GITHUB_OUTPUT"
+          echo "--- headers ---"
+          curl -sS -m 30 -o /dev/null -D - -X POST "https://ai-tools-mcp.toolboxes.top/mcp" \
+            -H 'content-type: application/json' \
+            -H 'accept: application/json, text/event-stream' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"gh-actions-probe","version":"1"}}}' 2>/dev/null \
+            | grep -iE '^(HTTP/|server:|cf-|x-)' || true
+          echo "--- body (first 200) ---"
+          head -c 200 body.txt 2>/dev/null || true
           echo
+
+          echo "=========== GET sibling hosts (same zone) ==========="
+          for u in \
+            "https://ai-tools-mcp.toolboxes.top/" \
+            "https://ai.toolboxes.top/" \
+            "https://toolboxes.top/" \
+            "https://mcp.toolboxes.top/" ; do
+            c=$(curl -sS -m 25 -o /dev/null -w '%{http_code}' "$u" || echo "err")
+            echo "  GET $u -> $c"
+          done
 
       - name: Verdict
         run: |
-          code="${{ steps.probe.outputs.HTTP_STATUS }}"
-          echo "HTTP_STATUS=$code"
+          code="${{ steps.probe.outputs.MCP_CODE }}"
+          echo "MCP_CODE=$code"
           if [ "$code" = "200" ]; then
             echo "PASS: GitHub Actions 出口可正常访问 → 端点对外确实无鉴权（🔓，与条目一致）"
           else
-            echo "FAIL: 非 200 → 边缘仍在拦截 GitHub Actions 出口，需继续排查 Cloudflare 设置"
+            echo "FAIL: 非 200 → 边缘仍在拦截 GitHub Actions 出口"
           fi
-
-      - name: tools/list sanity
-        run: |
-          echo "--- tools/list ---"
-          curl -sS -m 30 -X POST "https://ai-tools-mcp.toolboxes.top/mcp" \
-            -H 'content-type: application/json' \
-            -H 'accept: application/json, text/event-stream' \
-            -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' 2>&1 | head -c 300 || true
-          echo
