@@ -210,10 +210,25 @@ mcp-publisher publish
 - [x] 官方 Registry 发布（`top.toolboxes/ai-tools-directory`，DNS 认证）✅ 2026-09-17
 - [x] 用 Registry API 验证能搜到 ✅
 - [x] DNS TXT 已加（apex，CF API 操作）
-- [ ] 公开 GitHub 仓库（🔴 **必做**，其余目录站全部依赖它）：需有效 GitHub PAT，或直接在浏览器建空仓库再 `git push`
-- [ ] Smithery —— 应已自动从官方 Registry 抓取；没抓到再填表单 <https://smithery.ai/new>
-- [ ] Glama Add Server（有公开仓库后更顺）<https://glama.ai/mcp/servers>
-- [ ] MCP.so 表单 <https://mcp.so>
+- [x] 公开 GitHub 仓库 ✅ https://github.com/renhongtao2-cell/ai-tools-mcp
+- [ ] **Smithery** —— ⚠️ **实测不能自动级联，且必须登录**（2026-09-18 核实）
+      - `smithery.ai/new` **直接 307 跳 `authk.smithery.ai`（WorkOS SSO）**，无登录进不去
+      - 文档顶部已写明 **"Smithery is now a part of Arcade.dev!"** —— 已被收购/并入，前景待观察
+      - 发布要求（URL 方式）：**Streamable HTTP** ✅ + OAuth（若无鉴权则不需要）✅；
+        **公开服务器会自动扫描元数据** ✅ —— 我们完全符合
+      - 有 API：`PUT https://api.smithery.ai/servers/{qualifiedName}/releases`
+        （bearer 鉴权，multipart，支持 external/URL 类型）——
+        **但文档未给出 `DeployPayload` 完整结构**，硬试有风险
+      - **最短路径**：登录后到 <https://smithery.ai/new> 粘贴
+        `https://ai-tools-mcp.toolboxes.top/mcp`，其余全自动
+- [x] Glama connector 已收录 ✅（`glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory`，实测 200）
+      —— 不需要再走 <https://glama.ai/mcp/servers> 的 Add Server
+- [ ] **MCP.so** —— 🔴 **收费 $39**（2026-09-18 核实），不是免费目录
+      - 入口 `https://mcp.so/submit?type=server`；必填 Repository URL + Name
+      - $39 一次性 → **dofollow 外链** + 免审核立即发布 + Verified 徽章 + 优先展示位
+      - 域名 **DR 72**、266K 月活、12 个月 220 万访客 —— **dofollow 外链在 SEO 上真值钱**
+      - ⏸ **待用户决定是否花这 39 美元**（没找到免费提交入口）
+
 - [x] **star `punkpeye/awesome-remote-mcp-servers`** ✅（2026-09-18 已 star，API 核实 204）
 - [x] **Awesome PR 已提交** ✅ → https://github.com/punkpeye/awesome-remote-mcp-servers/pull/407
       - 分支 `add-ai-tools-directory`，commit `faab3f2`，1 文件 +3/-0
