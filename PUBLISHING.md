@@ -6,9 +6,9 @@
 |---|---|
 | 端点 | ✅ `https://ai-tools-mcp.toolboxes.top/mcp`（已上线，36/36 自测通过） |
 | `server.json` | ✅ 已通过官方 `mcp-publisher validate`，命名空间 `top.toolboxes/ai-tools-directory` |
-| `mcp-publisher` | ✅ 已装到 `C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe` |
+| `mcp-publisher` | ✅ 官方 CLI 已安装并完成登录（本地工具，不入库） |
 | 官方 Registry | ✅ **已发布**（DNS 域名认证，非 GitHub 设备码）— 自动级联 Smithery + PulseMCP |
-| DNS TXT | ✅ 已在 `toolboxes.top` apex 加 `v=MCPv1; k=ed25519; p=...`（用 `cf.env` 里的 `CF_TOK` 经 Cloudflare API 操作） |
+| DNS TXT | ✅ 已在 `toolboxes.top` apex 加 `v=MCPv1; k=ed25519; p=<公钥>` |
 | 公开仓库 | 🔴 **必须补**（不再是"可选"）：Registry 条目已**公开声明** `github.com/renhongtao2-cell/ai-tools-mcp`，但该仓库 **404** —— 这是一条公开的失效引用。本机 `.git-credentials` 的 token **实测 401 已过期**（2026-09-18）。仓库本地已就绪：4 个 commit、工作区干净、README / LICENSE / server.json / glama.json / .gitignore 齐全 |
 
 ---
@@ -28,13 +28,13 @@ Smithery 和 PulseMCP **都会自动从官方 Registry 抓取**。发一次，�
    v=MCPv1; k=ed25519; p=lBdxoy2ygBjN2ubtZtCG3JMjOw/3Jvs8AH+TvpkGSNw=
    ```
    > ⚠️ 放 apex，不是 `_mcp` 子域。已有 GSC 验证 TXT 不用动，新加这条是追加。
-2. 用本地 Ed25519 私钥（存 `C:\Users\Administrator\.workbuddy-ai\mcp-domain-key.json` 的 `priv` 字段，64 hex = 32 字节种子）登录：
+2. 用本地 Ed25519 私钥登录（私钥**自行安全保存，切勿入库**）：
    ```bash
-   C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe login dns --domain toolboxes.top --private-key <64hex私钥>
+   mcp-publisher login dns --domain toolboxes.top --private-key <64hex私钥>
    ```
 3. 发布：
    ```bash
-   C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe publish
+   mcp-publisher publish
    ```
 
 验证（已通过）：
@@ -145,9 +145,9 @@ No authentication required. Data maintained at https://ai.toolboxes.top
 ## 数据更新后重新发布
 
 ```bash
-cd E:\xiangmu\ai-tools-mcp
+cd <repo>
 # 改 server.json 里的 version（官方 Registry 要求版本号递增）
-C:\Users\Administrator\.workbuddy-ai\bin\mcp-publisher\mcp-publisher.exe publish
+mcp-publisher publish
 ```
 
 服务端改了不用重新发布 —— Registry 只存元数据，指向的是固定 URL。

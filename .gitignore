@@ -6,3 +6,9 @@ node_modules/
 *.log
 .DS_Store
 .wdev.log
+
+# 域名认证私钥 / 凭据 —— 绝不允许入库
+mcp-domain-key.json
+*.pem
+.env*
+cf.env
