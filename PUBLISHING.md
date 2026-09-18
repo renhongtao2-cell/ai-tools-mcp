@@ -81,19 +81,63 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=ai-tools-dire
 
 ---
 
-## 第 5 步：Awesome MCP Servers（GitHub PR）
+## 第 5 步：Awesome 列表 PR —— ⚠️ 去错了仓库（2026-09-18 核实并更正）
 
-**2026-09-18 实测核对**（此前的"punkpeye 已 404"是错的）：
+**关键更正**：`awesome-mcp-servers`（95k star）的 CONTRIBUTING 明确写了：
 
-| 仓库 | 状态 | 星数 | 结论 |
+> This list is for servers with a public GitHub repository — something you install and run yourself.
+> **If your server is remote-only (just a hosted URL, no installable package), it belongs in
+> [awesome-remote-mcp-servers](https://github.com/punkpeye/awesome-remote-mcp-servers) instead.**
+
+我们是 **remote-only**（托管端点 + 无 npm 包）→ **正确目标是 `awesome-remote-mcp-servers`**。
+
+| 仓库 | 星数 | 是否我们的目标 | 说明 |
 |---|---|---|---|
-| `punkpeye/awesome-mcp-servers` | ✅ 活跃 | **95,185** | **主目标**，去这个 |
-| `wong2/awesome-mcp-servers` | ✅ 活跃 | 4,315 | 备选，也发 |
-| `appcypher/awesome-mcp-servers` | ⚠️ **已 archived** | 5,771 | **别 PR**，归档仓库不会被合 |
-| `sammcj/awesome-mcp-servers` | ❌ 404 | — | 已不存在 |
+| `punkpeye/awesome-remote-mcp-servers` | 262 | ✅ **正确目标** | 纯远程列表，**不要求 GitHub 仓库** |
+| `punkpeye/awesome-mcp-servers` | **95,185** | ❌ 超出范围 | 只收可自行安装的；我们是 remote-only |
+| `wong2/awesome-mcp-servers` | 4,315 | 备选 | 需另行核对范围 |
+| `appcypher/awesome-mcp-servers` | 5,771 | ⚠️ **已 archived** | 别 PR，归档仓库不会合 |
+| `sammcj/awesome-mcp-servers` | — | ❌ 404 | 已不存在 |
 
-- 需要公开仓库（列表本身链到公开 repo，**不接受网站链接**）
-- PR 要求：加到对应分类、保持字母序、写简短描述
+### awesome-remote-mcp-servers 的四条硬要求（逐条核对结果）
+
+| 要求 | 我们的状态 |
+|---|---|
+| 公开 URL 能应答 MCP `initialize`（**CI 每次 PR 都查**） | ✅ 实测 HTTP 200 |
+| 任何人可用（不能是私有/邀请制/单租户） | ✅ 无鉴权 |
+| Streamable HTTP 或 SSE | ✅ Streamable HTTP |
+| **必须是 Glama connector，且 CI 校验徽章指向真实存在** | ✅ **已收录** —— 实测 `glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory` 返回 200，页面含 "AI Tools Directory" ×4、我们的端点 ×2、"221" ×6 |
+
+> 🔴 **还有一条不是技术的**：CONTRIBUTING 写明「**PR 作者的账号必须 star 过该仓库**，
+> 否则不合」。所以提交前 `renhongtao2-cell` 必须先去点 star。
+
+### 分类与插入位置（已定）
+
+分类选 **🔗 Aggregators**（同段已有同类条目：`ToolsMonk`「Find the right one of 255 free
+browser-based PDF, image, text and SEO tools by describing the task」、`nohumans.directory`、
+`Hubris` 等，语义完全吻合）。
+
+**字母序（忽略大小写）**：`ai tools directory` 的第 3 个字符是空格（0x20），
+小于 `aisa` 的 `s` → **插在 `AIsa` 之前，即该分类第一条**。
+
+### 现成条目（直接粘进 README.md 的 Aggregators 段首）
+
+```markdown
+- [AI Tools Directory](https://ai.toolboxes.top) `https://ai-tools-mcp.toolboxes.top/mcp`
+  [![AI Tools Directory MCP connector](https://glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory/badges/score.svg)](https://glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory)
+  🔓 - Curated index of 221 AI tools across 21 industries; search by use case, department or pricing tier.
+```
+
+格式逐项对齐 CONTRIBUTING：名称链到**主页**（不是 GitHub 仓库）✓ / 端点用反引号原样 ✓ /
+Glama connector 徽章（`NAMESPACE/NAME` = `top.toolboxes/ai-tools-directory`）✓ /
+鉴权标记 `🔓`（无鉴权）✓ / 描述一句话 99 字符（上限 120）、以句号结尾 ✓
+
+### 🤖 Agent 快速通道（两个仓库都支持）
+
+> If you are an automated agent, we have a streamlined process for merging agent PRs.
+> Just add `🤖🤖🤖` to the end of the PR title to opt-in. Merging your PR will be fast-tracked.
+
+**PR 标题结尾要加 `🤖🤖🤖`** —— 这是官方给 agent 的加速通道，别漏。
 
 ---
 
@@ -163,6 +207,10 @@ mcp-publisher publish
 - [ ] Smithery —— 应已自动从官方 Registry 抓取；没抓到再填表单 <https://smithery.ai/new>
 - [ ] Glama Add Server（有公开仓库后更顺）<https://glama.ai/mcp/servers>
 - [ ] MCP.so 表单 <https://mcp.so>
-- [ ] Awesome MCP Servers PR → **`punkpeye/awesome-mcp-servers`（95k star，活跃）** + `wong2/awesome-mcp-servers`
+- [ ] **star `punkpeye/awesome-remote-mcp-servers`**（🔴 前置条件：CONTRIBUTING 要求 PR 作者必须 star 过）
+- [ ] Awesome PR → **`punkpeye/awesome-remote-mcp-servers`**（纯远程列表，262 star，我们的正确目标）
+      —— 条目文案见第 5 步，PR 标题结尾加 `🤖🤖🤖`
+- [ ] Glama connector 已收录 ✅（`glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory`，实测 200）
+- [ ] ⚠️ `punkpeye/awesome-mcp-servers`（95k star）**我们是 remote-only，超出其范围**，别浪费时间
 - [ ] 顺手也加到自家的 `mcp.toolboxes.top` 目录（现成的，别浪费）
 - [ ] 官方 Registry 是 canonical，已自动级联 PulseMCP + MCP Market，不用手动提交
