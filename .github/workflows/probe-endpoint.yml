@@ -1,25 +1,29 @@
-# 从 GitHub Actions 的网络出口探测我们自己的 MCP 端点。
+# 从 GitHub Actions 的网络出口探测我们自己的端点与整站可访问性。
 #
 # 为什么必须要这个 workflow：
 #   awesome-remote-mcp-servers 的 CI（`<!-- auth-check -->`）从 GitHub Actions 出网，
-#   曾拿到 401/403（判定 🔑），而本机 curl 一直是 200（判定 🔓）。
-#   本机**无法复现**「GitHub 出口 IP 被 Cloudflare 边缘拦截」这件事：
-#     - allorigins 只支持 GET，POST 一律 522，不可信
-#     - 本机没有外部代理
-#   → 唯一可靠的办法就是**在同一个网络里自己探自己**：GitHub Actions 探 GitHub Actions。
+#   曾判定端点需要鉴权（🔑），而本机 curl 一直是 200（🔓）。
+#   本机**无法复现**「GitHub 出口 IP 被 Cloudflare 边缘拦截」这件事
+#   （allorigins 只支持 GET，POST 一律 522；本机无外部代理）。
+#   → 唯一可靠办法：**在同一个网络里自己探自己**。
 #
-# 🔴 另一个必须知道的点：对方 CI 的 `say(marker, body)` **只在 marker 首次出现时评论**，
-#    既不删旧评论也不重复发，labels 也不变。所以即使我们已经修好，
-#    那条 "auth marker does not match" 也**永远不会自动更新**。
-#    → 本 workflow 是我们唯一能持续观测真实状态的手段。
+# 🔴 对方 CI 的 `say(marker, body)` 只在 marker 首次出现时评论，既不删旧评论也不重复发，
+#    labels 也不变 → 那条 "auth marker does not match" 永远不会自动更新。
+#    本 workflow 是我们唯一能持续观测真实状态的手段。
 #
-# 🔴 实测结论（2026-09-18）：GitHub Actions 出口拿到的是 **403 + "Just a moment..."**，
-#    即 Cloudflare **Managed Challenge**，不是 401、不是我们 Worker 的响应。
-#    已排除：browser_check（已 off，无效）、security_level（essentially_off，无效）、
-#    waf（off）、bot_fight_mode（Free 计划不存在该设置）。
-#    → 剩下的嫌疑：advanced_ddos / 自动 bot 管理，或一条我们无权读取的自定义规则。
-#    → 本 workflow 现在做**差分探测**：同 zone 的多个主机一起探，
-#      判断是「zone 级」还是「单主机级」。
+# 🔴 实测结论（2026-09-18）：
+#    从 GitHub Actions 出口访问本 zone → **HTTP 403 + cf-mitigated: challenge**
+#    即 Cloudflare **托管挑战页**（"Just a moment..."），**不是 401、不是我们服务器的响应**。
+#    且是 **zone 级**：同 zone 的 4 个主机（含普通 GET）全部 403。
+#    已排除：browser_check(off 无效)、security_level(essentially_off 无效，已还原 medium)、
+#            waf=off、legacy firewall rules 0 条、bot_fight_mode(该计划不存在)。
+#    残余嫌疑：advanced_ddos(on，不可改) + **Custom Rules（住在 rulesets，需 Zone|WAF 权限）**。
+#
+# 本 workflow 现在做三件事：
+#   1. 主控：POST /mcp + cf-* 响应头
+#   2. 差分：同 zone 多主机 GET（判定 zone 级 vs 单主机级）
+#   3. 对照组：非本 zone 的站点（排除「GitHub IP 到哪里都被拦」这种误判）
+#      以及常见机器人 UA（判断社交预览抓取器等是否也被挑战）
 #
 # 触发：push 改本文件 / 手动 dispatch / 每天 03:23 UTC
 name: probe-endpoint
@@ -43,11 +47,10 @@ jobs:
         run: |
           echo "runner egress IP: $(curl -s -m 15 https://api.ipify.org || echo '(lookup failed)')"
 
-      - name: Differential probe (MCP endpoint vs sibling hosts on same zone)
+      - name: 1) 主控 —— POST /mcp
         id: probe
         run: |
           set -u
-          echo "=========== POST /mcp  (the one that matters) ==========="
           code=$(curl -sS -m 30 -o body.txt -w '%{http_code}' -X POST "https://ai-tools-mcp.toolboxes.top/mcp" \
             -H 'content-type: application/json' \
             -H 'accept: application/json, text/event-stream' \
@@ -55,32 +58,56 @@ jobs:
             || echo "curl-failed")
           echo "MCP_CODE=$code"
           echo "MCP_CODE=$code" >> "$GITHUB_OUTPUT"
-          echo "--- headers ---"
+          echo "--- cf-*/server headers ---"
           curl -sS -m 30 -o /dev/null -D - -X POST "https://ai-tools-mcp.toolboxes.top/mcp" \
             -H 'content-type: application/json' \
             -H 'accept: application/json, text/event-stream' \
             -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"gh-actions-probe","version":"1"}}}' 2>/dev/null \
-            | grep -iE '^(HTTP/|server:|cf-|x-)' || true
-          echo "--- body (first 200) ---"
-          head -c 200 body.txt 2>/dev/null || true
+            | grep -iE '^(HTTP/|server:|cf-)' || true
+          echo "--- body (first 160) ---"
+          head -c 160 body.txt 2>/dev/null || true
           echo
 
-          echo "=========== GET sibling hosts (same zone) ==========="
+      - name: 2) 差分 —— 同 zone 兄弟主机
+        run: |
+          echo "GET siblings on toolboxes.top zone:"
           for u in \
             "https://ai-tools-mcp.toolboxes.top/" \
             "https://ai.toolboxes.top/" \
             "https://toolboxes.top/" \
             "https://mcp.toolboxes.top/" ; do
             c=$(curl -sS -m 25 -o /dev/null -w '%{http_code}' "$u" || echo "err")
-            echo "  GET $u -> $c"
+            echo "  $c  $u"
           done
+
+      - name: 3) 对照组 —— 非本 zone + 机器人 UA
+        run: |
+          echo "CONTROL: sites NOT on our zone (排除 'GitHub IP 到哪都被拦' 的误判):"
+          for u in "https://example.com/" "https://www.cloudflare.com/" "https://api.github.com/"; do
+            c=$(curl -sS -m 25 -o /dev/null -w '%{http_code}' "$u" || echo "err")
+            echo "  $c  $u"
+          done
+          echo
+          echo "BOT UAs against toolboxes.top (社交预览 / 爬虫会不会也被挑战):"
+          for ua in \
+            "Twitterbot/1.0" \
+            "facebookexternalhit/1.1" \
+            "Slackbot-LinkExpanding 1.0" \
+            "Discordbot/2.0" \
+            "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" ; do
+            c=$(curl -sS -m 25 -o /dev/null -w '%{http_code}' -A "$ua" "https://toolboxes.top/" || echo "err")
+            echo "  $c  UA=$ua"
+          done
+          echo
+          echo "NOTE: Cloudflare 对 Googlebot/Bingbot 是**反向 DNS 校验**，"
+          echo "      仅伪造 UA 不会通过 —— 上面的 Googlebot 结果不代表真实 Googlebot。"
 
       - name: Verdict
         run: |
           code="${{ steps.probe.outputs.MCP_CODE }}"
           echo "MCP_CODE=$code"
           if [ "$code" = "200" ]; then
-            echo "PASS: GitHub Actions 出口可正常访问 → 端点对外确实无鉴权（🔓，与条目一致）"
+            echo "PASS: 端点从 GitHub Actions 出口可访问（🔓 正确）"
           else
-            echo "FAIL: 非 200 → 边缘仍在拦截 GitHub Actions 出口"
+            echo "FAIL: 非 200 —— 边缘仍在拦截机房 IP"
           fi
