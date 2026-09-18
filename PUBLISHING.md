@@ -223,11 +223,28 @@ mcp-publisher publish
         `https://ai-tools-mcp.toolboxes.top/mcp`，其余全自动
 - [x] Glama connector 已收录 ✅（`glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory`，实测 200）
       —— 不需要再走 <https://glama.ai/mcp/servers> 的 Add Server
-- [ ] **MCP.so** —— 🔴 **收费 $39**（2026-09-18 核实），不是免费目录
-      - 入口 `https://mcp.so/submit?type=server`；必填 Repository URL + Name
-      - $39 一次性 → **dofollow 外链** + 免审核立即发布 + Verified 徽章 + 优先展示位
-      - 域名 **DR 72**、266K 月活、12 个月 220 万访客 —— **dofollow 外链在 SEO 上真值钱**
-      - ⏸ **待用户决定是否花这 39 美元**（没找到免费提交入口）
+- [ ] **MCP.so** —— ⚠️ **有免费入口，但免费 ≠ dofollow**（2026-09-18 二次核实，修正前一轮结论）
+      - 入口 `https://mcp.so/submit?type=server`；必填 **Repository URL + Name**（极简）
+      - **免费路径**：直接提交 → **走人工审核队列**，链接**大概率 nofollow**
+      - **$39 一次性**买的是：**免审核立即发布 + dofollow 外链 + Verified 徽章 + 优先展示位**
+      - 域名 **DR 72**、2.58K ref domains、46% dofollow、266K 月活
+      - ⏸ **结论**：$39 买的是「dofollow + 免等」。**先走免费路径占位**，等有预算再考虑升级
+- [ ] **LobeHub MCP Market**（~89,000 个服务器，免费）—— 有官方 Agent Skill，可半自动
+      - 包：`@lobehub/market-cli`（命令 `lhm`），需 Node ≥ 22 ✅
+      - 流程：`lhm plugin init --url <endpoint> --dir <repo>`（**纯本地，不需登录**）
+        → `lhm login`（**需人工浏览器**）→ `lhm github connect`（**需人工浏览器**）
+        → `lhm plugin publish https://github.com/renhongtao2-cell/ai-tools-mcp --dir <repo>`
+      - 免费，但 **没有非交互发布路径**（`lhm login` / `github connect` 必须有人开浏览器）
+      - 限流：每账号每小时 10 次仓库提交
+      - 官方 Skill 文档：<https://market.lobehub.com/s/publish-mcp>
+- [ ] **LibHunt** —— 免费 + 即时 + **dofollow**，**只吃 GitHub 仓库 URL**
+      - 我们是 hosted 服务器，但**有公开仓库** → 可投
+      - ⚠️ 站点对非浏览器 UA 直接 **403**（curl 拿不到），必须浏览器操作
+- [ ] **MCPMarket** —— 有公开 GitHub 仓库则**免费**；hosted 无仓库才收 $69
+      - 我们两个条件都满足（有仓库）→ **免费档**
+- [ ] **MCP Directory** —— 读你的 GitHub 仓库自动建页 → **有仓库即可免费收录**
+- [ ] ⚠️ **PulseMCP** —— **已不接受提交**，官方答复就是「去投官方 Registry」
+      - → 解释了为什么我们一直没被 PulseMCP 收录：**不是我们坏了，是它关了门**
 
 - [x] **star `punkpeye/awesome-remote-mcp-servers`** ✅（2026-09-18 已 star，API 核实 204）
 - [x] **Awesome PR 已提交** ✅ → https://github.com/punkpeye/awesome-remote-mcp-servers/pull/407
@@ -238,5 +255,11 @@ mcp-publisher publish
 - [x] Glama connector 已收录 ✅（`glama.ai/mcp/connectors/top.toolboxes/ai-tools-directory`，实测 200）
 - [x] 公开仓库已建 ✅ https://github.com/renhongtao2-cell/ai-tools-mcp
 - [ ] ⚠️ `punkpeye/awesome-mcp-servers`（95k star）**我们是 remote-only，超出其范围**，别浪费时间
-- [ ] 顺手也加到自家的 `mcp.toolboxes.top` 目录（现成的，别浪费）
-- [ ] 官方 Registry 是 canonical，已自动级联 PulseMCP + MCP Market，不用手动提交
+- [x] 顺手也加到自家的 `mcp.toolboxes.top` 目录 ✅（`servers/ai-tools-directory.html`，实测 200）
+
+### 🔴 重要更正：「官方 Registry 会自动级联到各目录站」是**错的**
+前一版这里写着「已自动级联 PulseMCP + MCP Market，不用手动提交」——**实测不成立**：
+- Smithery **不级联**（要登录手工提交）
+- PulseMCP **已关闭提交**
+- MCP Market / MCP Directory 是**读 GitHub 仓库**，不是读 Registry
+→ **每个站都要单独处理**，不能假设自动。

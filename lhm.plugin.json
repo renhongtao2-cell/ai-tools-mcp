@@ -1,0 +1,131 @@
+{
+  "author": "renhongtao2-cell",
+  "authorUrl": "https://github.com/renhongtao2-cell",
+  "cloudEndpoint": "https://ai-tools-mcp.toolboxes.top/mcp",
+  "description": "MCP server exposing a curated directory of 221 AI tools across 21 industry departments",
+  "homepage": "https://ai.toolboxes.top",
+  "identifier": "renhongtao2-cell-ai-tools-mcp",
+  "name": "AI Tools Directory",
+  "prompts": [],
+  "resources": [
+    {
+      "name": "AI tools directory (full)",
+      "uri": "aitools://directory",
+      "description": "221 AI tools with department, pricing tier, description, tags and URL.",
+      "mimeType": "application/json"
+    },
+    {
+      "name": "AI tools with free-tier facts",
+      "uri": "aitools://free-tier",
+      "description": "Subset with auto-extracted (unverified) free-tier facts.",
+      "mimeType": "application/json"
+    },
+    {
+      "name": "Departments",
+      "uri": "aitools://departments",
+      "description": "21 industry departments and their tool counts.",
+      "mimeType": "application/json"
+    }
+  ],
+  "tags": [
+    "mcp",
+    "model-context-protocol",
+    "ai-tools",
+    "directory",
+    "cloudflare-worker"
+  ],
+  "tools": [
+    {
+      "name": "search_ai_tools",
+      "description": "Search the AI tools directory by free-text query, industry department, and/or pricing tier. Returns matching tools with name, URL, department, pricing tier and description.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Free text matched against tool name, description and tags (e.g. \"video editing\", \"invoice\")."
+          },
+          "department": {
+            "type": "string",
+            "description": "Department id, e.g. marketing, design, dev, finance, legal, healthcare. Call list_departments for the full list."
+          },
+          "pricing": {
+            "type": "string",
+            "enum": [
+              "free",
+              "freemium",
+              "paid"
+            ],
+            "description": "Filter by pricing tier."
+          },
+          "limit": {
+            "type": "number",
+            "description": "Max results (default 20, max 100)."
+          }
+        }
+      }
+    },
+    {
+      "name": "get_ai_tool",
+      "description": "Get the full record for one AI tool by name (exact match first, then fuzzy).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Tool name, e.g. \"ChatGPT\"."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "list_departments",
+      "description": "List all industry departments in the directory with the number of tools in each.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "find_free_ai_tools",
+      "description": "Find AI tools with a free tier, optionally filtered by auto-extracted facts (no credit card required, has a free plan, API available on the free tier). Free-tier facts are auto-extracted and unverified.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "requires_no_credit_card": {
+            "type": "boolean",
+            "description": "Only tools whose vendor page explicitly says no credit card is required."
+          },
+          "has_free_plan": {
+            "type": "boolean",
+            "description": "Only tools with a free plan / free tier / free forever."
+          },
+          "has_api_on_free": {
+            "type": "boolean",
+            "description": "Only tools with API access on the free tier."
+          },
+          "department": {
+            "type": "string",
+            "description": "Optional department filter."
+          },
+          "limit": {
+            "type": "number",
+            "description": "Max results (default 20, max 100)."
+          }
+        }
+      }
+    },
+    {
+      "name": "directory_stats",
+      "description": "Get summary statistics for the directory: tool count, department count, pricing distribution, and how many tools have auto-extracted free-tier facts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ],
+  "version": "1.0.0"
+}
