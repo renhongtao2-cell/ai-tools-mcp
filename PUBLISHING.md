@@ -109,7 +109,7 @@ wrangler deploy          # 或 npm run deploy
 
 ### 方式 B：直接走 Cloudflare API（本机没装 wrangler 时用）
 `worker.js` 有 `import dataset from './dataset.json'`，而 Workers API 只收单文件，
-所以要先内联 JSON 再传。可复用脚本：`E:\xiangmu\AIchaoshi\.workbuddy\tmp\deploy-mcp.mjs`
+所以要先内联 JSON 再传。可复用脚本：`E:\xiangmu\AIchaoshi\.workbuddy\deploy-mcp.mjs`
 
 ```bash
 node E:/xiangmu/AIchaoshi/.workbuddy/deploy-mcp.mjs
