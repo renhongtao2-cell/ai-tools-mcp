@@ -1,0 +1,14 @@
+{
+  "description": "Skip L7 DDoS/bot challenge for hosts that need to be reachable by server-side clients and directory CIs",
+  "rules": [
+    {
+      "action": "skip",
+      "action_parameters": {
+        "phases": ["ddos_l7"]
+      },
+      "description": "No Cloudflare challenge for non-browser clients",
+      "enabled": true,
+      "expression": "(http.host eq \"ai-tools-mcp.toolboxes.top\")"
+    }
+  ]
+}

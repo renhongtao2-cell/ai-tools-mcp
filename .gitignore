@@ -12,3 +12,6 @@ mcp-domain-key.json
 *.pem
 .env*
 cf.env
+
+# 部署打包中间产物（由部署脚本生成）
+.workbuddy-bundle.mjs

@@ -14,6 +14,11 @@ const SERVER_VERSION = '1.0.0';
 const PROTOCOL_VERSION = '2025-06-18';
 const SITE = 'https://ai.toolboxes.top';
 
+// Glama 连接器归属验证（claim ownership）。
+// 从 glama.ai 的 claim 面板复制，形如 glama_claim_ + 32 位 [A-Za-z0-9_-]。
+// 该 token 本身不含个人信息，按 Glama 要求公开托管在 /.well-known/glama.json。
+const GLAMA_CLAIM_TOKEN = 'glama_claim_oMvb33CKShTtQWdLjVWJW1iVsMO8ztBn';
+
 const INSTRUCTIONS = [
   'AI Tools Directory — a curated, machine-readable index of ' + dataset.stats.tools + ' AI tools across ' + dataset.stats.departments + ' industry departments.',
   '',
@@ -262,6 +267,14 @@ export default {
 
     if (request.method === 'GET') {
       if (url.pathname === '/health') return json({ ok: true, server: SERVER_NAME, version: SERVER_VERSION, tools: dataset.stats.tools });
+      // Glama 连接器归属验证 —— 需符合 https://glama.ai/mcp/schemas/connector.json
+      if (url.pathname === '/.well-known/glama.json') {
+        if (!GLAMA_CLAIM_TOKEN) return json({ error: 'not_found' }, 404);
+        return new Response(
+          JSON.stringify({ $schema: 'https://glama.ai/mcp/schemas/connector.json', claim: GLAMA_CLAIM_TOKEN }, null, 1),
+          { status: 200, headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS } }
+        );
+      }
       // 落地页 / 服务信息
       const accept = request.headers.get('accept') || '';
       if (url.pathname !== '/' && url.pathname !== '/mcp') return json({ error: 'not_found' }, 404);
