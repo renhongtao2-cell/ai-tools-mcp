@@ -112,7 +112,7 @@ wrangler deploy          # 或 npm run deploy
 所以要先内联 JSON 再传。可复用脚本：`E:\xiangmu\AIchaoshi\.workbuddy\tmp\deploy-mcp.mjs`
 
 ```bash
-node E:/xiangmu/AIchaoshi/.workbuddy/tmp/deploy-mcp.mjs
+node E:/xiangmu/AIchaoshi/.workbuddy/deploy-mcp.mjs
 ```
 它做三件事：读 `worker.js` → 把 `import` 换成内联常量 → multipart PUT 到
 `/accounts/{acc}/workers/scripts/ai-tools-mcp`。
